@@ -1,6 +1,8 @@
 "use client";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
+import LoadingSpinner from "./components/LoadingSpinner";
 
 const fieldsOfStudy = [
   "Computer Science",
@@ -39,6 +41,7 @@ export default function Home() {
     useState<CapstoneDetails | null>(null);
 
   const generationHandler = async () => {
+    setLoading(true);
     if (!selectedFields) return;
 
     const response = await fetch("/api/generate", {
@@ -46,7 +49,10 @@ export default function Home() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ field: selectedFields }),
+      body: JSON.stringify({
+        field: selectedFields,
+        selectDifficulty: difficulty,
+      }),
     });
 
     const data = await response.json();
@@ -56,7 +62,10 @@ export default function Home() {
 
     const formattedResponse = JSON.parse(jsonString);
 
+    console.log(formattedResponse);
+
     setCapstoneDetails(formattedResponse);
+    setLoading(false);
   };
 
   return (
@@ -76,7 +85,7 @@ export default function Home() {
               <div className="title text-xl font-bold">
                 <span>Industry</span>
               </div>
-              <div className="text-sm grid grid-cols-6 gap-1 w-full">
+              <div className="text-sm text-sm flex flex-wrap gap-1 w-full overflow-y-auto max-h-80">
                 {fieldsOfStudy.map((field) => (
                   <button
                     key={field}
@@ -96,7 +105,7 @@ export default function Home() {
               <div className="title text-xl font-bold">
                 <span>Difficulty</span>
               </div>
-              <div className="description text-md flex gap-2 w-full ml-25">
+              <div className="description text-md flex gap-2 w-full ml-3">
                 {difficultyMap.map((diff) => (
                   <button
                     key={diff}
@@ -116,55 +125,69 @@ export default function Home() {
           <div className="generateBottonGrp w-full flex justify-center pb-5">
             <button
               className={`generateButton mt-2 px-4 py-2 rounded-lg border ${
-                selectedFields
-                  ? " bg-blue-500 text-white border-blue-500 hover:bg-blue-600"
-                  : "text-white bg-slate-300 border-slate-300"
+                loading || !selectedFields || !difficulty
+                  ? "text-white bg-slate-300 border-slate-300"
+                  : " bg-blue-500 text-white border-blue-500 hover:bg-blue-600"
               }`}
               onClick={generationHandler}
-              disabled={!selectedFields}
+              disabled={loading || !selectedFields || !difficulty}
             >
               Generate capstone Title
             </button>
           </div>
         </div>
         <div className="generatedDetails w-full h-full flex items-center justify-center">
-        <div className="capstoneDetails flex flex-col border border-solid border-slate-300 bg-white p-5 rounded-lg w-full h-full shadow-lg">
-          <div className="detailContent flex h-full flex-col">
-            {capstoneDetails ? (
-              <>
-                <div className="title text-md text-center font-bold">
-                  <span>{capstoneDetails.title}</span>
+          <div className="capstoneDetails flex flex-col border border-solid border-slate-300 bg-white rounded-lg w-full h-80 shadow-lg">
+            <div className="detailContent flex h-full flex-col">
+              {loading ? (
+                <div className="flex justify-center items-center h-full bg-slate-200/50">
+                  <LoadingSpinner />
                 </div>
-                <div className="divider border border-slate-300/50 my-3"></div>
-                <div className="row grid grid-cols-2 gap-2">
-                  <div className="difficulty text-md">
-                    <span
-                      className={`rounded-lg border p-1 ml-2 text-sm ${
-                        capstoneDetails?.difficulty
-                          ? difficultyCSS[capstoneDetails?.difficulty]
-                          : "bg-slate-500"
-                      }`}
-                    >
-                      {capstoneDetails.difficulty}
-                    </span>
-                  </div>
-                  <div className="estimation text-md">
-                    <span className="text-slate-400 text-md">Estimation:</span>
-                    <span className="ml-3">{capstoneDetails.duration}</span>
-                  </div>
-                </div>
-                <div className="description text-md mt-5">
-                  <span className="text-slate-500 text-md">Description:</span>
-                  <p className="text-md">{capstoneDetails.description}</p>
-                </div>
-              </>
-            ) : (
-              <div className="placeholder text-md text-center flex flex-col items-center justify-center text-slate-400">
-                <span>Generate a capstone title to see details</span>
-              </div>
-            )}
+              ) : (
+                <>
+                  {capstoneDetails ? (
+                    <div className=" p-5 ">
+                      <div className="title text-md text-center font-bold">
+                        <span>{capstoneDetails.title}</span>
+                      </div>
+                      <div className="divider border border-slate-300/50 my-3"></div>
+                      <div className="row grid grid-cols-2 gap-2">
+                        <div className="difficulty text-md">
+                          <span
+                            className={`rounded-lg border p-1 ml-2 text-sm ${
+                              capstoneDetails?.difficulty
+                                ? difficultyCSS[capstoneDetails?.difficulty]
+                                : "bg-slate-500"
+                            }`}
+                          >
+                            {capstoneDetails.difficulty}
+                          </span>
+                        </div>
+                        <div className="estimation text-md">
+                          <span className="text-slate-400 text-md">
+                            Estimation:
+                          </span>
+                          <span className="ml-3">
+                            {capstoneDetails.duration}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="description text-md mt-5">
+                        <span className="text-slate-500 text-md">
+                          Description:
+                        </span>
+                        <p className="text-md">{capstoneDetails.description}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="placeholder text-md text-center flex flex-col h-full items-center justify-center bg-slate-200 text-slate-400">
+                      <span>Generate a capstone title to see details</span>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
-        </div>
         </div>
       </div>
       <div className="footer pt-5">
@@ -173,9 +196,33 @@ export default function Home() {
           <span className="font-bold"> joshuasoqueno21@gmail.com</span>
         </p>
         <div className="contacts flex justify-center gap-1 pt-5">
-          <div className="facebook">fb</div>
-          <div className="insta">ig</div>
-          <div className="linkedIn">In</div>
+          <div className="facebook">
+            <a
+              href="https://www.facebook.com/profile.php?id=100074370085663"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaFacebook size={20} />
+            </a>
+          </div>
+          <div className="insta">
+            <a
+              href="https://www.instagram.com/alphapuppey/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaInstagram size={20} />
+            </a>
+          </div>
+          <div className="linkedIn">
+            <a
+              href="https://www.linkedin.com/in/joshua-loui-soqueño-9ab4b7321/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaLinkedin size={20} />
+            </a>
+          </div>
         </div>
       </div>
     </div>

@@ -11,6 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const apiKey = process.env.OPENROUTER_API_KEY;
   const selectedFields = req.body.field;
+  const selectedDiff = req.body.selectDifficulty;
   try{
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
@@ -25,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           "messages": [
             {
               "role": "user",
-              "content":`Give me only one creative capstone title on ${selectedFields} with short description estimation duration , and difficulty(easy, medium,hard). Do not include a numbered list. make it pure JSON format: 
+              "content":`Give me only one creative capstone title on ${selectedFields} with short description estimation duration , and difficulty is ${selectedDiff}. Do not include a numbered list. make it pure JSON format: 
 {
   "title": "Your Title Here",
   "description": "Project description here.",
