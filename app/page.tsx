@@ -57,7 +57,7 @@ export default function Home() {
 
     const data = await response.json();
     const dataresult = data.result;
-
+    console.log(dataresult);
     const jsonString = dataresult?.replace(/```json|```/g, "").trim();
 
     const formattedResponse = JSON.parse(jsonString);
